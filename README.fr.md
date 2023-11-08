@@ -24,7 +24,7 @@ J'apprécie vos retours si vous souhaitez partager votre expérience et signaler
 
 ### Option 1 : Télécharger l'installateur
 
-Vous pouvez télécharger la dernière version de l'installateur depuis [la page de la dernière version](releases/latest).
+Vous pouvez télécharger la dernière version de l'installateur depuis [la page de la dernière version](https://github.com/LaurentP/password-manager/releases).
 
 Il s'agit d'une application de bureau multiplateforme. Si vous ne trouvez pas l'installateur correspondant à votre système d'exploitation, référez-vous à l'option 2.
 

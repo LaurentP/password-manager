@@ -24,7 +24,7 @@ I appreciate your feedback if you would like to share your experience and report
 
 ### Option 1 : Download the installer
 
-You can download the latest installer from [the latest release page](releases/latest).
+You can download the latest installer from [the latest release page](https://github.com/LaurentP/password-manager/releases).
 
 This is a cross-platform desktop application. If you can't find the installer corresponding to your operating system, refer to option 2.
 
