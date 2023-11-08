@@ -20,6 +20,40 @@ This project is written with TypeScript, React, and Material UI. The Web Crypto 
 
 I appreciate your feedback if you would like to share your experience and report any issues.
 
+## How to use it
+
+### Option 1 : Download the installer
+
+You can download the latest installer from [the latest release page](releases/latest).
+
+This is a cross-platform desktop application. If you can't find the installer corresponding to your operating system, refer to option 2.
+
+### Option 2 : Build from source code
+
+#### 1. Configure your environment
+
+Node.js is the required runtime environment to build the application. If you don't already have it installed on your computer, download it from [the website of Node.js](https://nodejs.org) before following the following steps.
+
+In addition to Node.js, this project which uses Tauri also has additionnal prerequisites. Refer to [this page of the Tauri documentation](https://tauri.app/fr/v1/guides/getting-started/prerequisites) to configure your environment before continuing.
+
+#### 2. Download the source code
+
+Download the source code by either cloning the repository or downloading the ZIP file from the project's GitHub page. Then, in your terminal, make sure to navigate to the root of the project directory before using the following commands.
+
+#### 3. Install the dependencies
+
+```shell
+npm install
+```
+
+#### 4. Build the application
+
+```shell
+npm run tauri build
+```
+
+This will generate the binary files corresponding to your operating system to install the application.
+
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE.md](LICENSE.md) file for details.
