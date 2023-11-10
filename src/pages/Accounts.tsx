@@ -117,7 +117,10 @@ const Accounts = (): JSX.Element => {
               sx: {
                 p: 1,
                 '& ::-webkit-search-cancel-button': {
-                  WebkitAppearance: 'none',
+                  display: 'none', // "WebkitAppearance: 'none'" does not hide the default cancel button on Ubuntu 22.04 LTS
+                },
+                '& input': {
+                  WebkitAppearance: 'none', // Hide the default border on Ubuntu 22.04 LTS
                 },
               },
             }}
