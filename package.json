@@ -1,8 +1,8 @@
 {
   "name": "password-manager",
   "private": true,
-  "version": "0.1.0",
-  "description": "This app is a secure password manager that uses the AES-256-GCM algorithm to encrypt your sensitive data before storing it locally. It offers strong encryption, user friendly features, quick access to all your accounts, and the ability to generate secure passwords.",
+  "version": "0.1.1",
+  "description": "A secure password manager using the AES-256-GCM algorithm",
   "author": "Laurent Pascal",
   "license": "MIT",
   "type": "module",
