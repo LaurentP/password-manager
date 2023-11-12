@@ -16,7 +16,12 @@ const Export = (): JSX.Element => {
 
   const formatCSV = (data: string): string => {
     data = data.replace(/"/g, '""')
-    return `"${data}"`
+
+    if (/[,"]/g.test(data)) {
+      return `"${data}"`
+    }
+
+    return data
   }
 
   const handleExport = async (): Promise<void> => {
