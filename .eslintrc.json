@@ -28,5 +28,5 @@
       "version": "detect"
     }
   },
-  "ignorePatterns": ["/src/vite-env.d.ts", "/src/assets/*"]
+  "ignorePatterns": ["vite.config.ts", "/src/vite-env.d.ts", "/src/assets/*"]
 }
