@@ -42,7 +42,7 @@ const Auth = (): JSX.Element => {
 
   useEffect(() => {
     const checkUsersFile = async (): Promise<void> => {
-      if (!(await exists('data/users.json', { dir: BaseDirectory.Resource }))) {
+      if (!(await exists('data/users.json', { dir: BaseDirectory.AppData }))) {
         window.location.replace('/register')
       }
     }

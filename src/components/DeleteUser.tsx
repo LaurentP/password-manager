@@ -100,7 +100,7 @@ const DeleteUser = (): JSX.Element => {
     await saveUsers(users)
 
     const fileName = `data/data-${sessionData.userId}.bin`
-    const options = { dir: BaseDirectory.Resource }
+    const options = { dir: BaseDirectory.AppData }
 
     if (await exists(fileName, options)) {
       await removeFile(fileName, options)

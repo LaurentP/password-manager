@@ -37,7 +37,7 @@ const saveData = async (
   const data = new Uint8Array([...iv, ...new Uint8Array(ciphertext)])
 
   const fileName = `data/data-${id}.bin`
-  const options = { dir: BaseDirectory.Resource }
+  const options = { dir: BaseDirectory.AppData }
 
   if (await exists(fileName, options)) {
     await removeFile(fileName, options)

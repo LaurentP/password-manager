@@ -25,7 +25,7 @@ const loadData = async (
   aesKey: CryptoKey,
 ): Promise<AccountData[]> => {
   const fileName = `data/data-${id}.bin`
-  const options = { dir: BaseDirectory.Resource }
+  const options = { dir: BaseDirectory.AppData }
 
   if (await exists(fileName, options)) {
     const read = await readBinaryFile(fileName, options)

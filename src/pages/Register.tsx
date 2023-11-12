@@ -1,6 +1,6 @@
 import { PersonAdd as PersonAddIcon } from '@mui/icons-material'
 import { Box, Button, Link, Stack, TextField, Typography } from '@mui/material'
-import { BaseDirectory, createDir, exists } from '@tauri-apps/api/fs'
+import { BaseDirectory, createDir } from '@tauri-apps/api/fs'
 import { useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import PasswordIndicator from '../components/PasswordIndicator'
@@ -155,15 +155,9 @@ const Register = (): JSX.Element => {
 
     // Check if data directory exists, then create it if it does not exists
 
-    if (!(await exists('data', { dir: BaseDirectory.Resource }))) {
-      createDir('data', { dir: BaseDirectory.Resource })
-        .then(async () => {
-          await saveUsers(users)
-        })
-        .catch(() => {})
-    } else {
-      await saveUsers(users)
-    }
+    await createDir('data', { dir: BaseDirectory.AppData, recursive: true })
+
+    await saveUsers(users)
 
     // Create derived key
     const aesKeyData = await generateAesKey(e.target.password.value, salt)
