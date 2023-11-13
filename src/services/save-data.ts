@@ -1,10 +1,6 @@
-import {
-  BaseDirectory,
-  exists,
-  removeFile,
-  writeBinaryFile,
-} from '@tauri-apps/api/fs'
+import { exists, removeFile, writeBinaryFile } from '@tauri-apps/api/fs'
 import type { AccountData } from '../typings/AccountData'
+import getDataDirectory from './get-data-directory'
 
 const aesEncrypt = async (
   iv: Uint8Array,
@@ -37,7 +33,7 @@ const saveData = async (
   const data = new Uint8Array([...iv, ...new Uint8Array(ciphertext)])
 
   const fileName = `data/data-${id}.bin`
-  const options = { dir: BaseDirectory.AppData }
+  const options = { dir: getDataDirectory() }
 
   if (await exists(fileName, options)) {
     await removeFile(fileName, options)

@@ -24,7 +24,12 @@
         "createDir": true,
         "removeFile": true,
         "exists": true,
-        "scope": ["$APPDATA/*", "$APPDATA/data/*"]
+        "scope": [
+          "$RESOURCE/*",
+          "$RESOURCE/data/*",
+          "$APPDATA/*",
+          "$APPDATA/data/*"
+        ]
       },
       "dialog": {
         "all": false,

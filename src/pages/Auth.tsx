@@ -1,6 +1,6 @@
 import { Login as LoginIcon } from '@mui/icons-material'
 import { Box, Button, Link, Stack, TextField, Typography } from '@mui/material'
-import { BaseDirectory, exists } from '@tauri-apps/api/fs'
+import { exists } from '@tauri-apps/api/fs'
 import { exit } from '@tauri-apps/api/process'
 import { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
@@ -8,6 +8,7 @@ import PasswordInput from '../components/PasswordInput'
 import { SessionContext } from '../contexts/SessionContext'
 import useTypedContext from '../hooks/useTypedContext'
 import generateAesKey from '../services/generate-aes-key'
+import getDataDirectory from '../services/get-data-directory'
 import getUsers from '../services/get-users'
 import hashPassword from '../services/hash-password'
 import type { SessionDataContextType } from '../typings/SessionData'
@@ -42,7 +43,7 @@ const Auth = (): JSX.Element => {
 
   useEffect(() => {
     const checkUsersFile = async (): Promise<void> => {
-      if (!(await exists('data/users.json', { dir: BaseDirectory.AppData }))) {
+      if (!(await exists('data/users.json', { dir: getDataDirectory() }))) {
         window.location.replace('/register')
       }
     }

@@ -1,5 +1,6 @@
-import { BaseDirectory, exists, readBinaryFile } from '@tauri-apps/api/fs'
+import { exists, readBinaryFile } from '@tauri-apps/api/fs'
 import type { AccountData } from '../typings/AccountData'
+import getDataDirectory from './get-data-directory'
 
 const aesDecrypt = async (
   iv: Uint8Array,
@@ -25,24 +26,26 @@ const loadData = async (
   aesKey: CryptoKey,
 ): Promise<AccountData[]> => {
   const fileName = `data/data-${id}.bin`
-  const options = { dir: BaseDirectory.AppData }
 
-  if (await exists(fileName, options)) {
-    const read = await readBinaryFile(fileName, options)
+  try {
+    const options = { dir: getDataDirectory() }
 
-    const ivLength = 16
+    if (await exists(fileName, options)) {
+      const read = await readBinaryFile(fileName, options)
 
-    const iv = read.slice(0, ivLength)
-    const ciphertext = read.slice(ivLength)
+      const ivLength = 16
 
-    try {
+      const iv = read.slice(0, ivLength)
+      const ciphertext = read.slice(ivLength)
+
       const data = await aesDecrypt(iv, aesKey, ciphertext.buffer)
 
       return JSON.parse(data)
-    } catch (error) {
-      console.error(error)
     }
+  } catch (error) {
+    console.error(error)
   }
+
   return []
 }
 

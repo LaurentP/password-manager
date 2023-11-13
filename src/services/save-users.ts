@@ -1,13 +1,9 @@
-import {
-  BaseDirectory,
-  exists,
-  removeFile,
-  writeTextFile,
-} from '@tauri-apps/api/fs'
+import { exists, removeFile, writeTextFile } from '@tauri-apps/api/fs'
+import getDataDirectory from './get-data-directory'
 
 const saveUsers = async (users: object): Promise<void> => {
   const fileName = 'data/users.json'
-  const options = { dir: BaseDirectory.AppData }
+  const options = { dir: getDataDirectory() }
 
   if (await exists(fileName, options)) {
     await removeFile(fileName, options)

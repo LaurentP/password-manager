@@ -10,11 +10,12 @@ import {
   DialogContentText,
   DialogTitle,
 } from '@mui/material'
-import { BaseDirectory, exists, removeFile } from '@tauri-apps/api/fs'
+import { exists, removeFile } from '@tauri-apps/api/fs'
 import { useState } from 'react'
 import { AlertContext } from '../contexts/AlertContext'
 import { SessionContext } from '../contexts/SessionContext'
 import useTypedContext from '../hooks/useTypedContext'
+import getDataDirectory from '../services/get-data-directory'
 import getUsers from '../services/get-users'
 import hashPassword from '../services/hash-password'
 import saveUsers from '../services/save-users'
@@ -100,7 +101,7 @@ const DeleteUser = (): JSX.Element => {
     await saveUsers(users)
 
     const fileName = `data/data-${sessionData.userId}.bin`
-    const options = { dir: BaseDirectory.AppData }
+    const options = { dir: getDataDirectory() }
 
     if (await exists(fileName, options)) {
       await removeFile(fileName, options)
