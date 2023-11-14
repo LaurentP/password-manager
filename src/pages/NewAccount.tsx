@@ -89,7 +89,9 @@ const NewAccount = (): JSX.Element => {
               type: 'success',
               message: 'The new account has been saved successfully.',
             })
-            navigate('/')
+            navigate('/', {
+              state: { id: accountData.id },
+            })
           })
           .catch(() => {})
       })

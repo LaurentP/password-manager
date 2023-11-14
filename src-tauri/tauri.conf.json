@@ -35,10 +35,6 @@
         "all": false,
         "open": true,
         "save": true
-      },
-      "process": {
-        "all": false,
-        "exit": true
       }
     },
     "bundle": {

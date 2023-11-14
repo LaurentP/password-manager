@@ -1,6 +1,7 @@
 import { Check as CheckIcon } from '@mui/icons-material'
 import { Button, Grid, Stack, TextField, Typography } from '@mui/material'
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import PasswordIndicator from '../components/PasswordIndicator'
 import { AlertContext } from '../contexts/AlertContext'
 import { SessionContext } from '../contexts/SessionContext'
@@ -47,6 +48,8 @@ const UserSettings = (): JSX.Element => {
 
   const [attempts, setAttempts] = useState<number>(0)
   const [newPassword, setNewPassword] = useState<string>('')
+
+  const navigate = useNavigate()
 
   const resetFormError = (): void => {
     setFormError({
@@ -101,11 +104,7 @@ const UserSettings = (): JSX.Element => {
       setAttempts(attempts + 1)
       if (attempts === 5) {
         setSessionData({ ...sessionData, isAuth: false })
-        setAlert({
-          open: true,
-          type: 'error',
-          message: 'You have exceeded the maximum number of attempts.',
-        })
+        navigate('/auth', { state: { attemptsNumber: attempts } })
       }
       return
     }

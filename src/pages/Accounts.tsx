@@ -14,6 +14,7 @@ import {
   Typography,
 } from '@mui/material'
 import { useEffect, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import EditAccount from '../components/EditAccount'
 import Layout from '../components/Layout'
 import { SessionContext } from '../contexts/SessionContext'
@@ -32,6 +33,8 @@ const Accounts = (): JSX.Element => {
   const [selectedId, setSelectedId] = useState<AccountData['id'] | null>(null)
   const [searchValue, setSearchValue] = useState<string>('')
 
+  const location = useLocation()
+
   useEffect(() => {
     loadData(sessionData.userId, sessionData.aesKey)
       .then((result: AccountData[]) => {
@@ -48,6 +51,10 @@ const Accounts = (): JSX.Element => {
         setListView([...list])
       })
       .catch(() => {})
+
+    if (location.state?.id !== undefined) {
+      setSelectedId(location.state.id)
+    }
   }, [])
 
   useEffect(() => {

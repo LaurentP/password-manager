@@ -44,29 +44,49 @@ const AccountForm = ({
   const [generatePasswordState, setGeneratePasswordState] =
     useState<boolean>(false)
 
-  const handleCopy = (): void => {
-    if (accountData.password.length === 0) {
+  const handleCopy = (type: string): void => {
+    if (type !== 'url' && type !== 'username' && type !== 'password') {
+      return
+    }
+
+    const typeString = {
+      url: 'website URL',
+      username: 'username or email',
+      password: 'password',
+    }
+
+    if (accountData[type].length === 0) {
       setAlert({
         open: true,
         type: 'warning',
-        message: 'There is no password to copy.',
+        message: `There is no ${typeString[type]} to copy.`,
       })
       return
     }
+
+    const capitalizedTypeString =
+      typeString[type].charAt(0).toLocaleUpperCase() + typeString[type].slice(1)
+
     navigator.clipboard
-      .writeText(accountData.password)
+      .writeText(accountData[type])
       .then(() => {
         setAlert({
           open: true,
           type: 'info',
-          message: 'Password copied to clipboard.',
+          message: `${capitalizedTypeString} copied to clipboard.`,
         })
       })
       .catch(() => {})
   }
 
   const handleOpenUrl = (): void => {
-    openUrl(accountData.url).catch(() => {
+    let url = accountData.url
+
+    if (!/^(https?:\/\/\w+).+/g.test(url)) {
+      url = 'http://' + accountData.url
+    }
+
+    openUrl(url).catch(() => {
       setAlert({
         open: true,
         type: 'warning',
@@ -113,27 +133,49 @@ const AccountForm = ({
             size="small"
           />
 
-          <Tooltip title="Open website URL">
+          <Tooltip title="Open website URL" placement="bottom-start">
             <IconButton onClick={handleOpenUrl}>
               <LaunchIcon color="action" />
             </IconButton>
           </Tooltip>
+
+          <Tooltip title="Copy website URL" placement="bottom-start">
+            <IconButton
+              onClick={() => {
+                handleCopy('url')
+              }}
+            >
+              <ContentCopyIcon color="action" />
+            </IconButton>
+          </Tooltip>
         </Stack>
 
-        <TextField
-          fullWidth
-          variant="filled"
-          label="Username or Email"
-          type="text"
-          name="username"
-          inputProps={{ maxLength: 100 }}
-          value={accountData.username}
-          onChange={handleChange}
-          error={formError.username.status}
-          helperText={formError.username.message}
-          size="small"
-          autoComplete="off"
-        />
+        <Stack direction="row" alignItems="center" spacing={2}>
+          <TextField
+            fullWidth
+            variant="filled"
+            label="Username or Email"
+            type="text"
+            name="username"
+            inputProps={{ maxLength: 100 }}
+            value={accountData.username}
+            onChange={handleChange}
+            error={formError.username.status}
+            helperText={formError.username.message}
+            size="small"
+            autoComplete="off"
+          />
+
+          <Tooltip title="Copy username or email" placement="bottom-start">
+            <IconButton
+              onClick={() => {
+                handleCopy('username')
+              }}
+            >
+              <ContentCopyIcon color="action" />
+            </IconButton>
+          </Tooltip>
+        </Stack>
 
         <Stack direction="row" alignItems="flex-start" spacing={2}>
           <Stack flexGrow={1}>
@@ -150,7 +192,7 @@ const AccountForm = ({
           </Stack>
 
           <Stack direction="row" spacing={2} pt={0.5}>
-            <Tooltip title="Generate password">
+            <Tooltip title="Generate password" placement="bottom-start">
               <IconButton
                 onClick={() => {
                   setGeneratePasswordState(true)
@@ -160,8 +202,12 @@ const AccountForm = ({
               </IconButton>
             </Tooltip>
 
-            <Tooltip title="Copy password">
-              <IconButton onClick={handleCopy}>
+            <Tooltip title="Copy password" placement="bottom-start">
+              <IconButton
+                onClick={() => {
+                  handleCopy('password')
+                }}
+              >
                 <ContentCopyIcon color="action" />
               </IconButton>
             </Tooltip>

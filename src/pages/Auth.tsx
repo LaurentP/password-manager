@@ -1,9 +1,16 @@
 import { Login as LoginIcon } from '@mui/icons-material'
-import { Box, Button, Link, Stack, TextField, Typography } from '@mui/material'
+import {
+  Alert,
+  Box,
+  Button,
+  Link,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material'
 import { exists } from '@tauri-apps/api/fs'
-import { exit } from '@tauri-apps/api/process'
 import { useEffect, useState } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Navigate, useLocation } from 'react-router-dom'
 import PasswordInput from '../components/PasswordInput'
 import { SessionContext } from '../contexts/SessionContext'
 import useTypedContext from '../hooks/useTypedContext'
@@ -40,6 +47,9 @@ const Auth = (): JSX.Element => {
     },
   })
   const [attempts, setAttempts] = useState<number>(0)
+  const [timeToAllow, setTimeToAllow] = useState<string>('')
+
+  const location = useLocation()
 
   useEffect(() => {
     const checkUsersFile = async (): Promise<void> => {
@@ -48,10 +58,52 @@ const Auth = (): JSX.Element => {
       }
     }
     checkUsersFile().catch(() => {})
+
+    if (location.state?.attemptsNumber !== undefined) {
+      setAttempts(location.state.attemptsNumber)
+    }
   }, [])
+
+  useEffect(() => {
+    if (attempts === 5) {
+      // 15 minutes
+      let delay = 1000 * 60 * 15
+
+      const endTime = Date.now() + delay
+
+      const refreshTimeToAllow = (): void => {
+        const remainingTime = endTime - Date.now()
+
+        const minutes = Math.floor(
+          (remainingTime % (1000 * 60 * 60)) / (1000 * 60),
+        )
+
+        const seconds = Math.floor((remainingTime % (1000 * 60)) / 1000)
+
+        setTimeToAllow(`${minutes} minutes and ${seconds} seconds`)
+      }
+
+      refreshTimeToAllow()
+
+      const timeoutToAllow = window.setInterval(() => {
+        delay -= 1000
+
+        refreshTimeToAllow()
+
+        if (delay === 0) {
+          setAttempts(0)
+          clearInterval(timeoutToAllow)
+        }
+      }, 1000)
+    }
+  }, [attempts])
 
   const handleSubmit = async (e: React.BaseSyntheticEvent): Promise<void> => {
     e.preventDefault()
+
+    if (attempts >= 5) {
+      return
+    }
 
     if (e.target.username.value.length === 0) {
       setFormError({
@@ -120,9 +172,6 @@ const Auth = (): JSX.Element => {
         },
       })
       setAttempts(attempts + 1)
-      if (attempts === 5) {
-        await exit(0)
-      }
       return
     }
 
@@ -144,55 +193,64 @@ const Auth = (): JSX.Element => {
   return (
     <Stack height="100vh" justifyContent="center" alignItems="center">
       <Box sx={{ width: '350px', padding: 2, textAlign: 'center' }}>
-        <Typography variant="h5">Login</Typography>
+        {attempts >= 5 ? (
+          <Alert severity="error" sx={{ my: 2 }}>
+            You have exceeded the maximum number of attempts. Please try again
+            in {timeToAllow}.
+          </Alert>
+        ) : (
+          <>
+            <Typography variant="h5">Login</Typography>
 
-        <Typography component="p" my={2}>
-          Please enter your username and password.
-        </Typography>
+            <Typography component="p" my={2}>
+              Please enter your username and password.
+            </Typography>
 
-        <Stack
-          component="form"
-          spacing={2}
-          onSubmit={(e) => {
-            handleSubmit(e).catch(() => {})
-          }}
-        >
-          <TextField
-            fullWidth
-            variant="filled"
-            label="Username"
-            type="text"
-            name="username"
-            error={formError.username.status}
-            helperText={formError.username.message}
-            size="small"
-            autoComplete="off"
-          />
+            <Stack
+              component="form"
+              spacing={2}
+              onSubmit={(e) => {
+                handleSubmit(e).catch(() => {})
+              }}
+            >
+              <TextField
+                fullWidth
+                variant="filled"
+                label="Username"
+                type="text"
+                name="username"
+                error={formError.username.status}
+                helperText={formError.username.message}
+                size="small"
+                autoComplete="off"
+              />
 
-          <PasswordInput
-            fullWidth={true}
-            label="Password"
-            name="password"
-            value={null}
-            onChange={null}
-            error={formError.password.status}
-            helperText={formError.password.message}
-          />
+              <PasswordInput
+                fullWidth={true}
+                label="Password"
+                name="password"
+                value={null}
+                onChange={null}
+                error={formError.password.status}
+                helperText={formError.password.message}
+              />
 
-          <Button
-            type="submit"
-            fullWidth
-            variant="contained"
-            disableElevation
-            startIcon={<LoginIcon />}
-          >
-            Login
-          </Button>
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                disableElevation
+                startIcon={<LoginIcon />}
+              >
+                Login
+              </Button>
 
-          <div>
-            or <Link href="/register">create an account</Link>
-          </div>
-        </Stack>
+              <div>
+                or <Link href="/register">create an account</Link>
+              </div>
+            </Stack>
+          </>
+        )}
       </Box>
     </Stack>
   )

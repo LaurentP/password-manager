@@ -12,14 +12,13 @@ import {
 } from '@mui/material'
 import { exists, removeFile } from '@tauri-apps/api/fs'
 import { useState } from 'react'
-import { AlertContext } from '../contexts/AlertContext'
+import { useNavigate } from 'react-router-dom'
 import { SessionContext } from '../contexts/SessionContext'
 import useTypedContext from '../hooks/useTypedContext'
 import getDataDirectory from '../services/get-data-directory'
 import getUsers from '../services/get-users'
 import hashPassword from '../services/hash-password'
 import saveUsers from '../services/save-users'
-import type { AlertDataContextType } from '../typings/AlertData'
 import type { SessionDataContextType } from '../typings/SessionData'
 import type { UserData } from '../typings/UserData'
 import PasswordInput from './PasswordInput'
@@ -32,7 +31,6 @@ type DeleteState = {
 }
 
 const DeleteUser = (): JSX.Element => {
-  const [, setAlert] = useTypedContext<AlertDataContextType>(AlertContext)
   const [sessionData, setSessionData] =
     useTypedContext<SessionDataContextType>(SessionContext)
 
@@ -43,6 +41,8 @@ const DeleteUser = (): JSX.Element => {
     passwordErrorText: '',
   })
   const [attempts, setAttempts] = useState<number>(0)
+
+  const navigate = useNavigate()
 
   const openDeleteDialog = (): void => {
     setDeleteState({
@@ -85,11 +85,7 @@ const DeleteUser = (): JSX.Element => {
       setAttempts(attempts + 1)
       if (attempts === 5) {
         setSessionData({ ...sessionData, isAuth: false })
-        setAlert({
-          open: true,
-          type: 'error',
-          message: 'You have exceeded the maximum number of attempts.',
-        })
+        navigate('/auth', { state: { attemptsNumber: attempts } })
       }
       return
     }
