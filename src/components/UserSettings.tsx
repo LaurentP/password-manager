@@ -1,7 +1,6 @@
 import { Check as CheckIcon } from '@mui/icons-material'
 import { Button, Grid, Stack, TextField, Typography } from '@mui/material'
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import PasswordIndicator from '../components/PasswordIndicator'
 import { AlertContext } from '../contexts/AlertContext'
 import { SessionContext } from '../contexts/SessionContext'
@@ -15,24 +14,16 @@ import saveData from '../services/save-data'
 import saveUsers from '../services/save-users'
 import type { AccountData } from '../typings/AccountData'
 import type { AlertDataContextType } from '../typings/AlertData'
+import type { FailedAttemptsData } from '../typings/FailedAttemptsData'
 import type { SessionDataContextType } from '../typings/SessionData'
 import type { UserData } from '../typings/UserData'
 import DeleteUser from './DeleteUser'
 import PasswordInput from './PasswordInput'
 
 type UserSettingsFormError = {
-  username: {
-    status: boolean
-    message: string
-  }
-  currentPassword: {
-    status: boolean
-    message: string
-  }
-  newPassword: {
-    status: boolean
-    message: string
-  }
+  username: { status: boolean; message: string }
+  currentPassword: { status: boolean; message: string }
+  newPassword: { status: boolean; message: string }
 }
 
 const UserSettings = (): JSX.Element => {
@@ -45,11 +36,8 @@ const UserSettings = (): JSX.Element => {
     currentPassword: { status: false, message: '' },
     newPassword: { status: false, message: '' },
   })
-
-  const [attempts, setAttempts] = useState<number>(0)
+  const [failedAttempts, setFailedAttempts] = useState<number>(0)
   const [newPassword, setNewPassword] = useState<string>('')
-
-  const navigate = useNavigate()
 
   const resetFormError = (): void => {
     setFormError({
@@ -82,10 +70,12 @@ const UserSettings = (): JSX.Element => {
 
     const users = await getUsers()
 
-    // Find user
-    const foundUser = users.filter(
-      (result: UserData) => result.id === sessionData.userId,
-    )[0]
+    const foundUser = users.find(
+      (item: UserData) => item.id === sessionData.userId,
+    )
+    if (foundUser === undefined) {
+      return
+    }
 
     // Check password
     const salt = foundUser.hash.slice(0, 32)
@@ -101,17 +91,29 @@ const UserSettings = (): JSX.Element => {
         },
         newPassword: { status: false, message: '' },
       })
-      setAttempts(attempts + 1)
-      if (attempts === 5) {
+
+      setFailedAttempts(failedAttempts + 1)
+
+      if (failedAttempts === 5) {
+        const failedAttemptsData: FailedAttemptsData = {
+          count: failedAttempts,
+          startTime: Date.now(),
+          endTime: Date.now() + 1000 * 60 * 15,
+        }
+
+        localStorage.setItem(
+          'failedAttemptsData',
+          JSON.stringify(failedAttemptsData),
+        )
+
         setSessionData({ ...sessionData, isAuth: false })
-        navigate('/auth', { state: { attemptsNumber: attempts } })
       }
       return
     }
 
-    const foundUserName = users.filter(
+    const foundUserName = users.find(
       (result: UserData) => result.username === e.target.username.value,
-    )[0]
+    )
 
     if (foundUserName !== undefined && foundUser !== foundUserName) {
       setFormError({

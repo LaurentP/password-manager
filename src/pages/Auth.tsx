@@ -10,7 +10,7 @@ import {
 } from '@mui/material'
 import { exists } from '@tauri-apps/api/fs'
 import { useEffect, useState } from 'react'
-import { Navigate, useLocation } from 'react-router-dom'
+import { Navigate } from 'react-router-dom'
 import PasswordInput from '../components/PasswordInput'
 import { SessionContext } from '../contexts/SessionContext'
 import useTypedContext from '../hooks/useTypedContext'
@@ -18,18 +18,13 @@ import generateAesKey from '../services/generate-aes-key'
 import getDataDirectory from '../services/get-data-directory'
 import getUsers from '../services/get-users'
 import hashPassword from '../services/hash-password'
+import type { FailedAttemptsData } from '../typings/FailedAttemptsData'
 import type { SessionDataContextType } from '../typings/SessionData'
 import type { UserData } from '../typings/UserData'
 
 type AuthFormError = {
-  username: {
-    status: boolean
-    message: string
-  }
-  password: {
-    status: boolean
-    message: string
-  }
+  username: { status: boolean; message: string }
+  password: { status: boolean; message: string }
 }
 
 const Auth = (): JSX.Element => {
@@ -37,19 +32,12 @@ const Auth = (): JSX.Element => {
     useTypedContext<SessionDataContextType>(SessionContext)
 
   const [formError, setFormError] = useState<AuthFormError>({
-    username: {
-      status: false,
-      message: '',
-    },
-    password: {
-      status: false,
-      message: '',
-    },
+    username: { status: false, message: '' },
+    password: { status: false, message: '' },
   })
-  const [attempts, setAttempts] = useState<number>(0)
-  const [timeToAllow, setTimeToAllow] = useState<string>('')
 
-  const location = useLocation()
+  const [failedAttemptsData, setFailedAttemptsData] =
+    useState<FailedAttemptsData>({ count: 0, startTime: 0, endTime: 0 })
 
   useEffect(() => {
     const checkUsersFile = async (): Promise<void> => {
@@ -59,51 +47,77 @@ const Auth = (): JSX.Element => {
     }
     checkUsersFile().catch(() => {})
 
-    if (location.state?.attemptsNumber !== undefined) {
-      setAttempts(location.state.attemptsNumber)
+    const getFailedAttemptsData = localStorage.getItem('failedAttemptsData')
+
+    if (getFailedAttemptsData !== null) {
+      setFailedAttemptsData(JSON.parse(getFailedAttemptsData))
     }
   }, [])
 
   useEffect(() => {
-    if (attempts === 5) {
-      // 15 minutes
-      let delay = 1000 * 60 * 15
+    if (failedAttemptsData.count === 5) {
+      const remainingTime = failedAttemptsData.endTime - Date.now()
 
-      const endTime = Date.now() + delay
+      const resetFailedAttemptsData = (): void => {
+        const newFailedAttemptsData: FailedAttemptsData = {
+          count: 0,
+          startTime: 0,
+          endTime: 0,
+        }
 
-      const refreshTimeToAllow = (): void => {
-        const remainingTime = endTime - Date.now()
+        setFailedAttemptsData(newFailedAttemptsData)
 
-        const minutes = Math.floor(
-          (remainingTime % (1000 * 60 * 60)) / (1000 * 60),
+        localStorage.setItem(
+          'failedAttemptsData',
+          JSON.stringify(newFailedAttemptsData),
         )
-
-        const seconds = Math.floor((remainingTime % (1000 * 60)) / 1000)
-
-        setTimeToAllow(`${minutes} minutes and ${seconds} seconds`)
       }
 
-      refreshTimeToAllow()
-
-      const timeoutToAllow = window.setInterval(() => {
-        delay -= 1000
-
-        refreshTimeToAllow()
-
-        if (delay === 0) {
-          setAttempts(0)
-          clearInterval(timeoutToAllow)
-        }
-      }, 1000)
+      if (remainingTime > 0) {
+        setTimeout(() => {
+          resetFailedAttemptsData()
+        }, remainingTime)
+      } else {
+        resetFailedAttemptsData()
+      }
     }
-  }, [attempts])
+  }, [failedAttemptsData])
+
+  const handleFailedAttempts = (): void => {
+    let newFailedAttemptsData: FailedAttemptsData = {
+      count: failedAttemptsData.count + 1,
+      startTime: Date.now(),
+      endTime: Date.now() + 1000 * 60 * 15,
+    }
+
+    if (failedAttemptsData.count > 0) {
+      const getFailedAttemptsData = localStorage.getItem('failedAttemptsData')
+
+      if (getFailedAttemptsData !== null) {
+        newFailedAttemptsData = JSON.parse(getFailedAttemptsData)
+        newFailedAttemptsData.count++
+      }
+    }
+
+    // Elapsed time in minutes
+    const elapsedTime = Math.floor(
+      (Date.now() - newFailedAttemptsData.startTime) / 1000 / 60,
+    )
+
+    if (elapsedTime > 15) {
+      newFailedAttemptsData = { count: 1, startTime: 0, endTime: 0 }
+    }
+
+    setFailedAttemptsData(newFailedAttemptsData)
+
+    localStorage.setItem(
+      'failedAttemptsData',
+      JSON.stringify(newFailedAttemptsData),
+    )
+  }
 
   const handleSubmit = async (e: React.BaseSyntheticEvent): Promise<void> => {
     e.preventDefault()
-
-    if (attempts >= 5) {
-      return
-    }
 
     if (e.target.username.value.length === 0) {
       setFormError({
@@ -111,20 +125,14 @@ const Auth = (): JSX.Element => {
           status: true,
           message: 'Your username is required.',
         },
-        password: {
-          status: false,
-          message: '',
-        },
+        password: { status: false, message: '' },
       })
       return
     }
 
     if (e.target.password.value.length === 0) {
       setFormError({
-        username: {
-          status: false,
-          message: '',
-        },
+        username: { status: false, message: '' },
         password: {
           status: true,
           message: 'Your password is required.',
@@ -135,11 +143,10 @@ const Auth = (): JSX.Element => {
 
     const users = await getUsers()
 
-    // Find user
-    const foundUser = users.filter(
+    const foundUser = users.find(
       (result: UserData) =>
         result.username.toUpperCase() === e.target.username.value.toUpperCase(),
-    )[0]
+    )
 
     if (foundUser === undefined) {
       setFormError({
@@ -147,12 +154,8 @@ const Auth = (): JSX.Element => {
           status: true,
           message: 'Wrong username. Please try again.',
         },
-        password: {
-          status: false,
-          message: '',
-        },
+        password: { status: false, message: '' },
       })
-      setAttempts(attempts + 1)
       return
     }
 
@@ -162,16 +165,15 @@ const Auth = (): JSX.Element => {
 
     if (hash !== foundUser.hash) {
       setFormError({
-        username: {
-          status: false,
-          message: '',
-        },
+        username: { status: false, message: '' },
         password: {
           status: true,
           message: 'Wrong password. Please try again.',
         },
       })
-      setAttempts(attempts + 1)
+
+      handleFailedAttempts()
+
       return
     }
 
@@ -193,10 +195,10 @@ const Auth = (): JSX.Element => {
   return (
     <Stack height="100vh" justifyContent="center" alignItems="center">
       <Box sx={{ width: '350px', padding: 2, textAlign: 'center' }}>
-        {attempts >= 5 ? (
+        {failedAttemptsData.count >= 5 ? (
           <Alert severity="error" sx={{ my: 2 }}>
-            You have exceeded the maximum number of attempts. Please try again
-            in {timeToAllow}.
+            You have exceeded the maximum number of attempts. Please wait a few
+            minutes before trying again.
           </Alert>
         ) : (
           <>

@@ -12,13 +12,13 @@ import {
 } from '@mui/material'
 import { exists, removeFile } from '@tauri-apps/api/fs'
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { SessionContext } from '../contexts/SessionContext'
 import useTypedContext from '../hooks/useTypedContext'
 import getDataDirectory from '../services/get-data-directory'
 import getUsers from '../services/get-users'
 import hashPassword from '../services/hash-password'
 import saveUsers from '../services/save-users'
+import type { FailedAttemptsData } from '../typings/FailedAttemptsData'
 import type { SessionDataContextType } from '../typings/SessionData'
 import type { UserData } from '../typings/UserData'
 import PasswordInput from './PasswordInput'
@@ -40,9 +40,7 @@ const DeleteUser = (): JSX.Element => {
     passwordError: false,
     passwordErrorText: '',
   })
-  const [attempts, setAttempts] = useState<number>(0)
-
-  const navigate = useNavigate()
+  const [failedAttempts, setFailedAttempts] = useState<number>(0)
 
   const openDeleteDialog = (): void => {
     setDeleteState({
@@ -82,10 +80,22 @@ const DeleteUser = (): JSX.Element => {
         passwordError: true,
         passwordErrorText: 'Wrong password. Please try again.',
       })
-      setAttempts(attempts + 1)
-      if (attempts === 5) {
+
+      setFailedAttempts(failedAttempts + 1)
+
+      if (failedAttempts === 5) {
+        const failedAttemptsData: FailedAttemptsData = {
+          count: failedAttempts,
+          startTime: Date.now(),
+          endTime: Date.now() + 1000 * 60 * 15,
+        }
+
+        localStorage.setItem(
+          'failedAttemptsData',
+          JSON.stringify(failedAttemptsData),
+        )
+
         setSessionData({ ...sessionData, isAuth: false })
-        navigate('/auth', { state: { attemptsNumber: attempts } })
       }
       return
     }
