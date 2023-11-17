@@ -3,19 +3,17 @@ import {
   Alert,
   Box,
   Button,
-  Link,
+  Link as MuiLink,
   Stack,
   TextField,
   Typography,
 } from '@mui/material'
-import { exists } from '@tauri-apps/api/fs'
 import { useEffect, useState } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import PasswordInput from '../components/PasswordInput'
 import { SessionContext } from '../contexts/SessionContext'
 import useTypedContext from '../hooks/useTypedContext'
 import generateAesKey from '../services/generate-aes-key'
-import getDataDirectory from '../services/get-data-directory'
 import getUsers from '../services/get-users'
 import hashPassword from '../services/hash-password'
 import type { FailedAttemptsData } from '../typings/FailedAttemptsData'
@@ -35,18 +33,14 @@ const Auth = (): JSX.Element => {
     username: { status: false, message: '' },
     password: { status: false, message: '' },
   })
-
   const [failedAttemptsData, setFailedAttemptsData] =
-    useState<FailedAttemptsData>({ count: 0, startTime: 0, endTime: 0 })
+    useState<FailedAttemptsData>({
+      count: 0,
+      startMilliseconds: 0,
+      endMilliseconds: 0,
+    })
 
   useEffect(() => {
-    const checkUsersFile = async (): Promise<void> => {
-      if (!(await exists('data/users.json', { dir: getDataDirectory() }))) {
-        window.location.replace('/register')
-      }
-    }
-    checkUsersFile().catch(() => {})
-
     const getFailedAttemptsData = localStorage.getItem('failedAttemptsData')
 
     if (getFailedAttemptsData !== null) {
@@ -56,13 +50,13 @@ const Auth = (): JSX.Element => {
 
   useEffect(() => {
     if (failedAttemptsData.count === 5) {
-      const remainingTime = failedAttemptsData.endTime - Date.now()
+      const remainingTime = failedAttemptsData.endMilliseconds - Date.now()
 
       const resetFailedAttemptsData = (): void => {
         const newFailedAttemptsData: FailedAttemptsData = {
           count: 0,
-          startTime: 0,
-          endTime: 0,
+          startMilliseconds: 0,
+          endMilliseconds: 0,
         }
 
         setFailedAttemptsData(newFailedAttemptsData)
@@ -84,10 +78,13 @@ const Auth = (): JSX.Element => {
   }, [failedAttemptsData])
 
   const handleFailedAttempts = (): void => {
+    // 15 minutes from now in milliseconds
+    const END_MILLISECONDS = Date.now() + 1000 * 60 * 15
+
     let newFailedAttemptsData: FailedAttemptsData = {
       count: failedAttemptsData.count + 1,
-      startTime: Date.now(),
-      endTime: Date.now() + 1000 * 60 * 15,
+      startMilliseconds: Date.now(),
+      endMilliseconds: END_MILLISECONDS,
     }
 
     if (failedAttemptsData.count > 0) {
@@ -99,13 +96,16 @@ const Auth = (): JSX.Element => {
       }
     }
 
-    // Elapsed time in minutes
-    const elapsedTime = Math.floor(
-      (Date.now() - newFailedAttemptsData.startTime) / 1000 / 60,
+    const elapsedMinutes = Math.floor(
+      (Date.now() - newFailedAttemptsData.startMilliseconds) / 1000 / 60,
     )
 
-    if (elapsedTime > 15) {
-      newFailedAttemptsData = { count: 1, startTime: 0, endTime: 0 }
+    if (elapsedMinutes > 15) {
+      newFailedAttemptsData = {
+        count: 1,
+        startMilliseconds: Date.now(),
+        endMilliseconds: END_MILLISECONDS,
+      }
     }
 
     setFailedAttemptsData(newFailedAttemptsData)
@@ -156,6 +156,9 @@ const Auth = (): JSX.Element => {
         },
         password: { status: false, message: '' },
       })
+
+      handleFailedAttempts()
+
       return
     }
 
@@ -177,7 +180,6 @@ const Auth = (): JSX.Element => {
       return
     }
 
-    // Create derived key
     const aesKeyData = await generateAesKey(e.target.password.value, salt)
 
     setSessionData({
@@ -188,71 +190,76 @@ const Auth = (): JSX.Element => {
     })
   }
 
-  if (sessionData.isAuth) {
-    return <Navigate to="/" />
-  }
-
-  return (
-    <Stack height="100vh" justifyContent="center" alignItems="center">
-      <Box sx={{ width: '350px', padding: 2, textAlign: 'center' }}>
-        {failedAttemptsData.count >= 5 ? (
+  if (failedAttemptsData.count >= 5) {
+    return (
+      <Stack height="100vh" justifyContent="center" alignItems="center">
+        <Box sx={{ width: '350px', padding: 2, textAlign: 'center' }}>
           <Alert severity="error" sx={{ my: 2 }}>
             You have exceeded the maximum number of attempts. Please wait a few
             minutes before trying again.
           </Alert>
-        ) : (
-          <>
-            <Typography variant="h5">Login</Typography>
+        </Box>
+      </Stack>
+    )
+  }
 
-            <Typography component="p" my={2}>
-              Please enter your username and password.
-            </Typography>
+  if (sessionData.isAuth) return <Navigate to="/" />
 
-            <Stack
-              component="form"
-              spacing={2}
-              onSubmit={(e) => {
-                handleSubmit(e).catch(() => {})
-              }}
-            >
-              <TextField
-                fullWidth
-                variant="filled"
-                label="Username"
-                type="text"
-                name="username"
-                error={formError.username.status}
-                helperText={formError.username.message}
-                size="small"
-                autoComplete="off"
-              />
+  return (
+    <Stack height="100vh" justifyContent="center" alignItems="center">
+      <Box sx={{ width: '350px', padding: 2, textAlign: 'center' }}>
+        <Typography variant="h5">Login</Typography>
 
-              <PasswordInput
-                fullWidth={true}
-                label="Password"
-                name="password"
-                value={null}
-                onChange={null}
-                error={formError.password.status}
-                helperText={formError.password.message}
-              />
+        <Typography component="p" my={2}>
+          Please enter your username and password.
+        </Typography>
 
-              <Button
-                type="submit"
-                fullWidth
-                variant="contained"
-                disableElevation
-                startIcon={<LoginIcon />}
-              >
-                Login
-              </Button>
+        <Stack
+          component="form"
+          spacing={2}
+          onSubmit={(e) => {
+            handleSubmit(e).catch(() => {})
+          }}
+        >
+          <TextField
+            fullWidth
+            variant="filled"
+            label="Username"
+            type="text"
+            name="username"
+            error={formError.username.status}
+            helperText={formError.username.message}
+            size="small"
+            autoComplete="off"
+          />
 
-              <div>
-                or <Link href="/register">create an account</Link>
-              </div>
-            </Stack>
-          </>
-        )}
+          <PasswordInput
+            fullWidth={true}
+            label="Password"
+            name="password"
+            value={null}
+            onChange={null}
+            error={formError.password.status}
+            helperText={formError.password.message}
+          />
+
+          <Button
+            type="submit"
+            fullWidth
+            variant="contained"
+            disableElevation
+            startIcon={<LoginIcon />}
+          >
+            Login
+          </Button>
+
+          <div>
+            or{' '}
+            <MuiLink component={Link} to="/register">
+              create an account
+            </MuiLink>
+          </div>
+        </Stack>
       </Box>
     </Stack>
   )

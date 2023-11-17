@@ -10,10 +10,10 @@ const IdleTracker = (): JSX.Element => {
   const [sessionData, setSessionData] =
     useTypedContext<SessionDataContextType>(SessionContext)
 
-  // 15 minutes
-  const seconds = 1000 * 60 * 15
+  // 15 minutes in milliseconds
+  const DELAY_IN_MILLISECONDS = 1000 * 60 * 15
 
-  let timer: number
+  let timeout: number
 
   const handleLogout = (): void => {
     setSessionData({ ...sessionData, isAuth: false })
@@ -26,11 +26,11 @@ const IdleTracker = (): JSX.Element => {
   }
 
   const resetTimer = (): void => {
-    clearTimeout(timer)
+    clearTimeout(timeout)
 
-    timer = setTimeout(() => {
+    timeout = window.setTimeout(() => {
       handleLogout()
-    }, seconds)
+    }, DELAY_IN_MILLISECONDS)
   }
 
   useEffect(() => {
@@ -46,7 +46,7 @@ const IdleTracker = (): JSX.Element => {
         window.removeEventListener('mousemove', resetTimer)
         window.removeEventListener('keydown', resetTimer)
 
-        clearTimeout(timer)
+        clearTimeout(timeout)
       }
     }
   }, [sessionData.isAuth])

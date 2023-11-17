@@ -8,11 +8,7 @@ import useId from '@mui/material/utils/useId'
 import { useEffect, useState } from 'react'
 import getPasswordStrength from '../services/get-password-strength'
 
-type Params = {
-  icon: JSX.Element
-  color: string
-  text: string
-}
+type Params = { icon: JSX.Element; color: string; text: string }
 
 const PasswordIndicator = ({ password }: { password: string }): JSX.Element => {
   const [params, setParams] = useState<Params>({

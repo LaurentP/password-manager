@@ -21,9 +21,7 @@ const Import = (): JSX.Element => {
       filters: [{ name: 'CSV File', extensions: ['csv'] }],
     })
 
-    if (filePath === null) {
-      return
-    }
+    if (filePath === null) return
 
     const fileContents = (await readTextFile(filePath.toString(), {}))
       .trim()

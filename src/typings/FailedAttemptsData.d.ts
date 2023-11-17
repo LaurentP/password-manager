@@ -1,5 +1,5 @@
 export type FailedAttemptsData = {
   count: number
-  startTime: number
-  endTime: number
+  startMilliseconds: number
+  endMilliseconds: number
 }

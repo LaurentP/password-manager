@@ -1,8 +1,15 @@
 import { PersonAdd as PersonAddIcon } from '@mui/icons-material'
-import { Box, Button, Link, Stack, TextField, Typography } from '@mui/material'
+import {
+  Box,
+  Button,
+  Link as MuiLink,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material'
 import { createDir } from '@tauri-apps/api/fs'
 import { useState } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import PasswordIndicator from '../components/PasswordIndicator'
 import PasswordInput from '../components/PasswordInput'
 import { SessionContext } from '../contexts/SessionContext'
@@ -17,18 +24,9 @@ import type { SessionDataContextType } from '../typings/SessionData'
 import type { UserData } from '../typings/UserData'
 
 type RegistrationFormError = {
-  username: {
-    status: boolean
-    message: string
-  }
-  password: {
-    status: boolean
-    message: string
-  }
-  passwordConfirm: {
-    status: boolean
-    message: string
-  }
+  username: { status: boolean; message: string }
+  password: { status: boolean; message: string }
+  passwordConfirm: { status: boolean; message: string }
 }
 
 const Register = (): JSX.Element => {
@@ -36,18 +34,9 @@ const Register = (): JSX.Element => {
     useTypedContext<SessionDataContextType>(SessionContext)
 
   const [formError, setFormError] = useState<RegistrationFormError>({
-    username: {
-      status: false,
-      message: '',
-    },
-    password: {
-      status: false,
-      message: '',
-    },
-    passwordConfirm: {
-      status: false,
-      message: '',
-    },
+    username: { status: false, message: '' },
+    password: { status: false, message: '' },
+    passwordConfirm: { status: false, message: '' },
   })
   const [password, setPassword] = useState<string>('')
 
@@ -64,43 +53,30 @@ const Register = (): JSX.Element => {
           status: true,
           message: 'Please choose an username.',
         },
-        password: {
-          status: false,
-          message: '',
-        },
-        passwordConfirm: {
-          status: false,
-          message: '',
-        },
+        password: { status: false, message: '' },
+        passwordConfirm: { status: false, message: '' },
       })
       return
     }
 
     if (e.target.password.value.length === 0) {
       setFormError({
-        username: {
-          status: false,
-          message: '',
-        },
+        username: { status: false, message: '' },
         password: {
           status: true,
           message: 'Please choose a password.',
         },
-        passwordConfirm: {
-          status: false,
-          message: '',
-        },
+        passwordConfirm: { status: false, message: '' },
       })
       return
     }
 
     const users = await getUsers()
 
-    // Find if the entered username is already exists
-    const foundUser = users.filter(
+    const foundUser = users.find(
       (result: UserData) =>
         result.username.toUpperCase() === e.target.username.value.toUpperCase(),
-    )[0]
+    )
 
     if (foundUser !== undefined) {
       setFormError({
@@ -108,32 +84,18 @@ const Register = (): JSX.Element => {
           status: true,
           message: 'This username is already exists. Please try again.',
         },
-        password: {
-          status: false,
-          message: '',
-        },
-        passwordConfirm: {
-          status: false,
-          message: '',
-        },
+        password: { status: false, message: '' },
+        passwordConfirm: { status: false, message: '' },
       })
       return
     }
 
-    if (e.target.password.value.length === 0) {
-      return
-    }
+    if (e.target.password.value.length === 0) return
 
     if (e.target.password.value !== e.target.passwordConfirm.value) {
       setFormError({
-        username: {
-          status: false,
-          message: '',
-        },
-        password: {
-          status: false,
-          message: '',
-        },
+        username: { status: false, message: '' },
+        password: { status: false, message: '' },
         passwordConfirm: {
           status: true,
           message: 'Passwords does not match. Please try again.',
@@ -154,13 +116,10 @@ const Register = (): JSX.Element => {
       hash: hashData,
     })
 
-    // Check if data directory exists, then create it if it does not exists
-
     await createDir('data', { dir: getDataDirectory(), recursive: true })
 
     await saveUsers(users)
 
-    // Create derived key
     const aesKeyData = await generateAesKey(e.target.password.value, salt)
 
     setSessionData({
@@ -171,9 +130,7 @@ const Register = (): JSX.Element => {
     })
   }
 
-  if (sessionData.isAuth) {
-    return <Navigate to="/" />
-  }
+  if (sessionData.isAuth) return <Navigate to="/" />
 
   return (
     <Stack height="100vh" justifyContent="center" alignItems="center">
@@ -244,7 +201,10 @@ const Register = (): JSX.Element => {
           </Button>
 
           <div>
-            or <Link href="/auth">login to your account</Link>
+            or{' '}
+            <MuiLink component={Link} to="/auth">
+              login to your account
+            </MuiLink>
           </div>
         </Stack>
       </Box>

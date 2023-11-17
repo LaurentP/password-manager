@@ -24,10 +24,7 @@ import type { AlertDataContextType } from '../typings/AlertData'
 import type { SessionDataContextType } from '../typings/SessionData'
 import AccountForm from './AccountForm'
 
-type DeleteState = {
-  dialog: boolean
-  status: boolean
-}
+type DeleteState = { dialog: boolean; status: boolean }
 
 const EditAccount = ({
   id,
@@ -98,9 +95,7 @@ const EditAccount = ({
       const accountItem = database.find(
         (item: AccountData) => item.id === accountData.id,
       )
-      if (accountItem === undefined) {
-        return
-      }
+      if (accountItem === undefined) return
 
       const index = database.indexOf(accountItem)
 
@@ -168,9 +163,7 @@ const EditAccount = ({
     const accountItem = database.find(
       (item: AccountData) => item.id === accountData.id,
     )
-    if (accountItem === undefined) {
-      return
-    }
+    if (accountItem === undefined) return
 
     const index = database.indexOf(accountItem)
 

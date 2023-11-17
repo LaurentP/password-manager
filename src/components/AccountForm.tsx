@@ -45,9 +45,7 @@ const AccountForm = ({
     useState<boolean>(false)
 
   const handleCopy = (type: string): void => {
-    if (type !== 'url' && type !== 'username' && type !== 'password') {
-      return
-    }
+    if (type !== 'url' && type !== 'username' && type !== 'password') return
 
     const typeString = {
       url: 'website URL',

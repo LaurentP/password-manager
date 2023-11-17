@@ -17,9 +17,7 @@ const Export = (): JSX.Element => {
   const formatCSV = (data: string): string => {
     data = data.replace(/"/g, '""')
 
-    if (/[,"]/g.test(data)) {
-      return `"${data}"`
-    }
+    if (/[,"]/g.test(data)) return `"${data}"`
 
     return data
   }
@@ -59,13 +57,12 @@ const Export = (): JSX.Element => {
       filters: [{ name: 'CSV File', extensions: ['csv'] }],
     })
 
-    if (filePath === null) {
-      return
-    }
+    if (filePath === null) return
 
     if (await exists(filePath)) {
       await removeFile(filePath)
     }
+
     writeTextFile(filePath.toString(), csvFileContent)
       .then(() => {
         setAlert({

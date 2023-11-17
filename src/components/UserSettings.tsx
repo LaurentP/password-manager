@@ -54,8 +54,6 @@ const UserSettings = (): JSX.Element => {
   const handleSubmit = async (e: React.BaseSyntheticEvent): Promise<void> => {
     e.preventDefault()
 
-    resetFormError()
-
     if (e.target.currentPassword.value.length === 0) {
       setFormError({
         username: { status: false, message: '' },
@@ -73,11 +71,8 @@ const UserSettings = (): JSX.Element => {
     const foundUser = users.find(
       (item: UserData) => item.id === sessionData.userId,
     )
-    if (foundUser === undefined) {
-      return
-    }
+    if (foundUser === undefined) return
 
-    // Check password
     const salt = foundUser.hash.slice(0, 32)
 
     const hash = await hashPassword(e.target.currentPassword.value, salt)
@@ -97,8 +92,8 @@ const UserSettings = (): JSX.Element => {
       if (failedAttempts === 5) {
         const failedAttemptsData: FailedAttemptsData = {
           count: failedAttempts,
-          startTime: Date.now(),
-          endTime: Date.now() + 1000 * 60 * 15,
+          startMilliseconds: Date.now(),
+          endMilliseconds: Date.now() + 1000 * 60 * 15,
         }
 
         localStorage.setItem(
@@ -187,6 +182,8 @@ const UserSettings = (): JSX.Element => {
           .catch(() => {})
       })
       .catch(() => {})
+
+    resetFormError()
   }
 
   return (

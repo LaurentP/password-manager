@@ -23,7 +23,7 @@ import type { SessionDataContextType } from '../typings/SessionData'
 import type { UserData } from '../typings/UserData'
 import PasswordInput from './PasswordInput'
 
-type DeleteState = {
+type DeleteUserState = {
   dialog: boolean
   password: string
   passwordError: boolean
@@ -34,7 +34,7 @@ const DeleteUser = (): JSX.Element => {
   const [sessionData, setSessionData] =
     useTypedContext<SessionDataContextType>(SessionContext)
 
-  const [deleteState, setDeleteState] = useState<DeleteState>({
+  const [deleteUserState, setDeleteUserState] = useState<DeleteUserState>({
     dialog: false,
     password: '',
     passwordError: false,
@@ -42,8 +42,8 @@ const DeleteUser = (): JSX.Element => {
   })
   const [failedAttempts, setFailedAttempts] = useState<number>(0)
 
-  const openDeleteDialog = (): void => {
-    setDeleteState({
+  const openDeleteUserDialog = (): void => {
+    setDeleteUserState({
       dialog: true,
       password: '',
       passwordError: false,
@@ -51,10 +51,10 @@ const DeleteUser = (): JSX.Element => {
     })
   }
 
-  const handleDelete = async (): Promise<void> => {
-    if (deleteState.password.length === 0) {
-      setDeleteState({
-        ...deleteState,
+  const handleDeleteUser = async (): Promise<void> => {
+    if (deleteUserState.password.length === 0) {
+      setDeleteUserState({
+        ...deleteUserState,
         passwordError: true,
         passwordErrorText: 'Your password is required.',
       })
@@ -66,17 +66,15 @@ const DeleteUser = (): JSX.Element => {
     const foundUser = users.find(
       (item: UserData) => item.id === sessionData.userId,
     )
-    if (foundUser === undefined) {
-      return
-    }
+    if (foundUser === undefined) return
 
     const salt = foundUser.hash.slice(0, 32)
 
-    const hash = await hashPassword(deleteState.password, salt)
+    const hash = await hashPassword(deleteUserState.password, salt)
 
     if (foundUser.hash !== hash) {
-      setDeleteState({
-        ...deleteState,
+      setDeleteUserState({
+        ...deleteUserState,
         passwordError: true,
         passwordErrorText: 'Wrong password. Please try again.',
       })
@@ -86,8 +84,8 @@ const DeleteUser = (): JSX.Element => {
       if (failedAttempts === 5) {
         const failedAttemptsData: FailedAttemptsData = {
           count: failedAttempts,
-          startTime: Date.now(),
-          endTime: Date.now() + 1000 * 60 * 15,
+          startMilliseconds: Date.now(),
+          endMilliseconds: Date.now() + 1000 * 60 * 15,
         }
 
         localStorage.setItem(
@@ -123,11 +121,11 @@ const DeleteUser = (): JSX.Element => {
         disableElevation
         startIcon={<PersonRemoveIcon />}
         color="error"
-        onClick={openDeleteDialog}
+        onClick={openDeleteUserDialog}
       >
         Delete User
       </Button>
-      <Dialog open={deleteState.dialog}>
+      <Dialog open={deleteUserState.dialog}>
         <DialogTitle>Delete user</DialogTitle>
         <DialogContent>
           <DialogContentText mb={2}>
@@ -141,10 +139,13 @@ const DeleteUser = (): JSX.Element => {
             name="deleteConfirmPassword"
             value={null}
             onChange={(e: React.BaseSyntheticEvent) => {
-              setDeleteState({ ...deleteState, password: e.target.value })
+              setDeleteUserState({
+                ...deleteUserState,
+                password: e.target.value,
+              })
             }}
-            error={deleteState.passwordError}
-            helperText={deleteState.passwordErrorText}
+            error={deleteUserState.passwordError}
+            helperText={deleteUserState.passwordErrorText}
           />
         </DialogContent>
         <DialogActions>
@@ -154,7 +155,7 @@ const DeleteUser = (): JSX.Element => {
             disableElevation
             startIcon={<CloseIcon />}
             onClick={() => {
-              setDeleteState({ ...deleteState, dialog: false })
+              setDeleteUserState({ ...deleteUserState, dialog: false })
             }}
           >
             Cancel
@@ -165,7 +166,7 @@ const DeleteUser = (): JSX.Element => {
             disableElevation
             startIcon={<PersonRemoveIcon />}
             onClick={() => {
-              handleDelete().catch(() => {})
+              handleDeleteUser().catch(() => {})
             }}
           >
             Delete

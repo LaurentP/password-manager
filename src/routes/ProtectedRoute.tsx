@@ -7,9 +7,7 @@ const ProtectedRoute = ({
   isAuth: boolean
   children: JSX.Element
 }): JSX.Element => {
-  if (!isAuth) {
-    return <Navigate to="/auth" replace />
-  }
+  if (!isAuth) return <Navigate to="/auth" replace />
 
   return children
 }

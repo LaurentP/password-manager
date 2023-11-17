@@ -2,6 +2,14 @@ import { createTheme } from '@mui/material/styles'
 
 const styles = createTheme({
   components: {
+    MuiCssBaseline: {
+      styleOverrides: {
+        body: {
+          userSelect: 'none',
+          cursor: 'default',
+        },
+      },
+    },
     MuiButton: {
       styleOverrides: {
         root: {

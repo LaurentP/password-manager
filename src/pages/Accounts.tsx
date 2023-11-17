@@ -40,9 +40,7 @@ const Accounts = (): JSX.Element => {
       .then((result: AccountData[]) => {
         setLoading(false)
 
-        if (result.length === 0) {
-          return
-        }
+        if (result.length === 0) return
 
         setDatabase(result)
 
