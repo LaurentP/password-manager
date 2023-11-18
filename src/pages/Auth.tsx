@@ -194,7 +194,7 @@ const Auth = (): JSX.Element => {
     return (
       <Stack height="100vh" justifyContent="center" alignItems="center">
         <Box sx={{ width: '350px', padding: 2, textAlign: 'center' }}>
-          <Alert severity="error" sx={{ my: 2 }}>
+          <Alert variant="filled" severity="error" sx={{ my: 2 }}>
             You have exceeded the maximum number of attempts. Please wait a few
             minutes before trying again.
           </Alert>

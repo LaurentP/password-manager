@@ -107,10 +107,9 @@ const PasswordGenerator = (): JSX.Element => {
         height={100}
         sx={{
           position: 'relative',
-          backgroundColor: '#eeeeee',
-          borderBottom: '1px solid #9e9e9e',
-          borderTopLeftRadius: '4px',
-          borderTopRightRadius: '4px',
+          backgroundColor: (theme) =>
+            theme.palette.mode === 'dark' ? '#4b4b4b' : '#eee',
+          borderRadius: '4px',
         }}
       >
         <Typography variant={password.length < 23 ? 'h4' : 'h6'}>

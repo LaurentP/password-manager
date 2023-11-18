@@ -100,7 +100,7 @@ const NewAccount = (): JSX.Element => {
 
   return (
     <Layout>
-      <Typography variant="h5" mx={2} mt={2}>
+      <Typography variant="h5" mx={2} mt={2} mb={2}>
         New Account
       </Typography>
 

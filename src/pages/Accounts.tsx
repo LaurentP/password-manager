@@ -95,7 +95,8 @@ const Accounts = (): JSX.Element => {
           xs={5}
           xl={4}
           height="calc(100vh - 70px)"
-          borderRight="1px solid #e0e0e0"
+          borderRight="1px solid"
+          borderColor={(theme) => theme.palette.divider}
         >
           <TextField
             fullWidth
@@ -136,7 +137,11 @@ const Accounts = (): JSX.Element => {
           />
 
           {loading ? (
-            <Stack justifyContent="center" alignItems="center" height="100%">
+            <Stack
+              justifyContent="center"
+              alignItems="center"
+              height="calc(100% - 70px)"
+            >
               <CircularProgress disableShrink />
               <br />
               Loading...

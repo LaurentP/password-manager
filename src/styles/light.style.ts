@@ -1,6 +1,6 @@
 import { createTheme } from '@mui/material/styles'
 
-const styles = createTheme({
+const lightStyle = createTheme({
   components: {
     MuiCssBaseline: {
       styleOverrides: {
@@ -33,7 +33,7 @@ const styles = createTheme({
       styleOverrides: {
         root: {
           minWidth: 150,
-          backgroundColor: '#252525',
+          backgroundColor: '#151515',
           color: '#fff',
         },
       },
@@ -41,4 +41,4 @@ const styles = createTheme({
   },
 })
 
-export default styles
+export default lightStyle

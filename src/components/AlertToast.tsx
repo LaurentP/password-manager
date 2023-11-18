@@ -30,7 +30,12 @@ const AlertToast = (): JSX.Element => {
       autoHideDuration={6000}
       onClose={handleAlertClose}
     >
-      <Alert severity={alert.type} elevation={3} action={closeAlertButton}>
+      <Alert
+        variant="filled"
+        severity={alert.type}
+        elevation={3}
+        action={closeAlertButton}
+      >
         {alert.message}
       </Alert>
     </Snackbar>
