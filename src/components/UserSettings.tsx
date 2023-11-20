@@ -15,54 +15,37 @@ import saveUsers from '../services/save-users'
 import type { AccountData } from '../typings/AccountData'
 import type { AlertDataContextType } from '../typings/AlertData'
 import type { FailedAttemptsData } from '../typings/FailedAttemptsData'
+import type { FormError } from '../typings/FormError'
 import type { SessionDataContextType } from '../typings/SessionData'
 import type { UserData } from '../typings/UserData'
 import DeleteUser from './DeleteUser'
 import PasswordInput from './PasswordInput'
-
-type UserSettingsFormError = {
-  username: { status: boolean; message: string }
-  currentPassword: { status: boolean; message: string }
-  newPassword: { status: boolean; message: string }
-}
 
 const UserSettings = (): JSX.Element => {
   const [, setAlert] = useTypedContext<AlertDataContextType>(AlertContext)
   const [sessionData, setSessionData] =
     useTypedContext<SessionDataContextType>(SessionContext)
 
-  const [formError, setFormError] = useState<UserSettingsFormError>({
-    username: { status: false, message: '' },
-    currentPassword: { status: false, message: '' },
-    newPassword: { status: false, message: '' },
+  const [formError, setFormError] = useState<FormError>({
+    fieldName: '',
+    message: '',
   })
   const [failedAttempts, setFailedAttempts] = useState<number>(0)
   const [newPassword, setNewPassword] = useState<string>('')
 
-  const resetFormError = (): void => {
-    setFormError({
-      username: { status: false, message: '' },
-      currentPassword: { status: false, message: '' },
-      newPassword: { status: false, message: '' },
-    })
-  }
-
   const handleChangePassword = (e: React.BaseSyntheticEvent): void => {
     setNewPassword(e.target.value)
+  }
+
+  const createFormError = (fieldName: string, message: string): void => {
+    setFormError({ fieldName, message })
   }
 
   const handleSubmit = async (e: React.BaseSyntheticEvent): Promise<void> => {
     e.preventDefault()
 
     if (e.target.currentPassword.value.length === 0) {
-      setFormError({
-        username: { status: false, message: '' },
-        currentPassword: {
-          status: true,
-          message: 'Your current password is required.',
-        },
-        newPassword: { status: false, message: '' },
-      })
+      createFormError('currentPassword', 'Your current password is required.')
       return
     }
 
@@ -78,14 +61,7 @@ const UserSettings = (): JSX.Element => {
     const hash = await hashPassword(e.target.currentPassword.value, salt)
 
     if (hash !== foundUser.hash) {
-      setFormError({
-        username: { status: false, message: '' },
-        currentPassword: {
-          status: true,
-          message: 'Wrong password. Please try again.',
-        },
-        newPassword: { status: false, message: '' },
-      })
+      createFormError('currentPassword', 'Wrong password. Please try again.')
 
       setFailedAttempts(failedAttempts + 1)
 
@@ -111,14 +87,10 @@ const UserSettings = (): JSX.Element => {
     )
 
     if (foundUserName !== undefined && foundUser !== foundUserName) {
-      setFormError({
-        username: {
-          status: true,
-          message: 'This username is already exists. Please try again.',
-        },
-        currentPassword: { status: false, message: '' },
-        newPassword: { status: false, message: '' },
-      })
+      createFormError(
+        'username',
+        'This username is already exists. Please try again.',
+      )
       return
     }
 
@@ -137,14 +109,10 @@ const UserSettings = (): JSX.Element => {
 
     if (e.target.newPassword.value.length !== 0) {
       if (e.target.newPassword.value !== e.target.newPasswordConfirm.value) {
-        setFormError({
-          username: { status: false, message: '' },
-          currentPassword: { status: false, message: '' },
-          newPassword: {
-            status: true,
-            message: 'Passwords does not match. Please try again.',
-          },
-        })
+        createFormError(
+          'newPassword',
+          'Passwords does not match. Please try again.',
+        )
         return
       }
 
@@ -183,7 +151,7 @@ const UserSettings = (): JSX.Element => {
       })
       .catch(() => {})
 
-    resetFormError()
+    setFormError({ fieldName: '', message: '' })
   }
 
   return (
@@ -206,8 +174,10 @@ const UserSettings = (): JSX.Element => {
           name="currentPassword"
           value={null}
           onChange={null}
-          error={formError.currentPassword.status}
-          helperText={formError.currentPassword.message}
+          error={formError.fieldName === 'currentPassword'}
+          helperText={
+            formError.fieldName === 'currentPassword' ? formError.message : ''
+          }
         />
 
         <div>You can leave empty the fields you don&apos;t want to update.</div>
@@ -219,8 +189,10 @@ const UserSettings = (): JSX.Element => {
           type="text"
           name="username"
           inputProps={{ maxLength: 100 }}
-          error={formError.username.status}
-          helperText={formError.username.message}
+          error={formError.fieldName === 'username'}
+          helperText={
+            formError.fieldName === 'username' ? formError.message : ''
+          }
           size="small"
           defaultValue={sessionData.username}
           autoComplete="off"
@@ -246,8 +218,12 @@ const UserSettings = (): JSX.Element => {
               type="password"
               name="newPasswordConfirm"
               inputProps={{ maxLength: 100 }}
-              error={formError.newPassword.status}
-              helperText={formError.newPassword.message}
+              error={formError.fieldName === 'newPasswordConfirm'}
+              helperText={
+                formError.fieldName === 'newPasswordConfirm'
+                  ? formError.message
+                  : ''
+              }
               size="small"
               sx={{
                 '& ::-ms-reveal': {

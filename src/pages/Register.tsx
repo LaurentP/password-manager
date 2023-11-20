@@ -20,23 +20,17 @@ import getDataDirectory from '../services/get-data-directory'
 import getUsers from '../services/get-users'
 import hashPassword from '../services/hash-password'
 import saveUsers from '../services/save-users'
+import type { FormError } from '../typings/FormError'
 import type { SessionDataContextType } from '../typings/SessionData'
 import type { UserData } from '../typings/UserData'
-
-type RegistrationFormError = {
-  username: { status: boolean; message: string }
-  password: { status: boolean; message: string }
-  passwordConfirm: { status: boolean; message: string }
-}
 
 const Register = (): JSX.Element => {
   const [sessionData, setSessionData] =
     useTypedContext<SessionDataContextType>(SessionContext)
 
-  const [formError, setFormError] = useState<RegistrationFormError>({
-    username: { status: false, message: '' },
-    password: { status: false, message: '' },
-    passwordConfirm: { status: false, message: '' },
+  const [formError, setFormError] = useState<FormError>({
+    fieldName: '',
+    message: '',
   })
   const [password, setPassword] = useState<string>('')
 
@@ -44,30 +38,20 @@ const Register = (): JSX.Element => {
     setPassword(e.target.value)
   }
 
+  const createFormError = (fieldName: string, message: string): void => {
+    setFormError({ fieldName, message })
+  }
+
   const handleSubmit = async (e: React.BaseSyntheticEvent): Promise<void> => {
     e.preventDefault()
 
     if (e.target.username.value.length === 0) {
-      setFormError({
-        username: {
-          status: true,
-          message: 'Please choose an username.',
-        },
-        password: { status: false, message: '' },
-        passwordConfirm: { status: false, message: '' },
-      })
+      createFormError('username', 'Please choose an username.')
       return
     }
 
     if (e.target.password.value.length === 0) {
-      setFormError({
-        username: { status: false, message: '' },
-        password: {
-          status: true,
-          message: 'Please choose a password.',
-        },
-        passwordConfirm: { status: false, message: '' },
-      })
+      createFormError('password', 'Please choose a password.')
       return
     }
 
@@ -79,28 +63,20 @@ const Register = (): JSX.Element => {
     )
 
     if (foundUser !== undefined) {
-      setFormError({
-        username: {
-          status: true,
-          message: 'This username is already exists. Please try again.',
-        },
-        password: { status: false, message: '' },
-        passwordConfirm: { status: false, message: '' },
-      })
+      createFormError(
+        'username',
+        'This username is already exists. Please try again.',
+      )
       return
     }
 
     if (e.target.password.value.length === 0) return
 
     if (e.target.password.value !== e.target.passwordConfirm.value) {
-      setFormError({
-        username: { status: false, message: '' },
-        password: { status: false, message: '' },
-        passwordConfirm: {
-          status: true,
-          message: 'Passwords does not match. Please try again.',
-        },
-      })
+      createFormError(
+        'passwordConfirm',
+        'Passwords does not match. Please try again.',
+      )
       return
     }
 
@@ -155,8 +131,10 @@ const Register = (): JSX.Element => {
             type="text"
             name="username"
             inputProps={{ maxLength: 100 }}
-            error={formError.username.status}
-            helperText={formError.username.message}
+            error={formError.fieldName === 'username'}
+            helperText={
+              formError.fieldName === 'username' ? formError.message : ''
+            }
             size="small"
             autoComplete="off"
           />
@@ -167,8 +145,10 @@ const Register = (): JSX.Element => {
             name="password"
             value={null}
             onChange={handleChangePassword}
-            error={formError.password.status}
-            helperText={formError.password.message}
+            error={formError.fieldName === 'password'}
+            helperText={
+              formError.fieldName === 'password' ? formError.message : ''
+            }
           />
 
           {password.length !== 0 && <PasswordIndicator password={password} />}
@@ -180,8 +160,10 @@ const Register = (): JSX.Element => {
             type="password"
             name="passwordConfirm"
             inputProps={{ maxLength: 100 }}
-            error={formError.passwordConfirm.status}
-            helperText={formError.passwordConfirm.message}
+            error={formError.fieldName === 'passwordConfirm'}
+            helperText={
+              formError.fieldName === 'passwordConfirm' ? formError.message : ''
+            }
             size="small"
             sx={{
               '& ::-ms-reveal': {

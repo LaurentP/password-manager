@@ -19,16 +19,12 @@ import getUsers from '../services/get-users'
 import hashPassword from '../services/hash-password'
 import saveUsers from '../services/save-users'
 import type { FailedAttemptsData } from '../typings/FailedAttemptsData'
+import type { FormError } from '../typings/FormError'
 import type { SessionDataContextType } from '../typings/SessionData'
 import type { UserData } from '../typings/UserData'
 import PasswordInput from './PasswordInput'
 
-type DeleteUserState = {
-  dialog: boolean
-  password: string
-  passwordError: boolean
-  passwordErrorText: string
-}
+type DeleteUserState = { dialog: boolean; password: string }
 
 const DeleteUser = (): JSX.Element => {
   const [sessionData, setSessionData] =
@@ -37,27 +33,24 @@ const DeleteUser = (): JSX.Element => {
   const [deleteUserState, setDeleteUserState] = useState<DeleteUserState>({
     dialog: false,
     password: '',
-    passwordError: false,
-    passwordErrorText: '',
+  })
+  const [formError, setFormError] = useState<FormError>({
+    fieldName: '',
+    message: '',
   })
   const [failedAttempts, setFailedAttempts] = useState<number>(0)
 
   const openDeleteUserDialog = (): void => {
-    setDeleteUserState({
-      dialog: true,
-      password: '',
-      passwordError: false,
-      passwordErrorText: '',
-    })
+    setDeleteUserState({ dialog: true, password: '' })
+  }
+
+  const createFormError = (fieldName: string, message: string): void => {
+    setFormError({ fieldName, message })
   }
 
   const handleDeleteUser = async (): Promise<void> => {
     if (deleteUserState.password.length === 0) {
-      setDeleteUserState({
-        ...deleteUserState,
-        passwordError: true,
-        passwordErrorText: 'Your password is required.',
-      })
+      createFormError('deleteConfirmPassword', 'Your password is required.')
       return
     }
 
@@ -73,11 +66,10 @@ const DeleteUser = (): JSX.Element => {
     const hash = await hashPassword(deleteUserState.password, salt)
 
     if (foundUser.hash !== hash) {
-      setDeleteUserState({
-        ...deleteUserState,
-        passwordError: true,
-        passwordErrorText: 'Wrong password. Please try again.',
-      })
+      createFormError(
+        'deleteConfirmPassword',
+        'Wrong password. Please try again.',
+      )
 
       setFailedAttempts(failedAttempts + 1)
 
@@ -144,8 +136,12 @@ const DeleteUser = (): JSX.Element => {
                 password: e.target.value,
               })
             }}
-            error={deleteUserState.passwordError}
-            helperText={deleteUserState.passwordErrorText}
+            error={formError.fieldName === 'deleteConfirmPassword'}
+            helperText={
+              formError.fieldName === 'deleteConfirmPassword'
+                ? formError.message
+                : ''
+            }
           />
         </DialogContent>
         <DialogActions>

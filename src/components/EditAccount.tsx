@@ -19,8 +19,8 @@ import useTypedContext from '../hooks/useTypedContext'
 import loadData from '../services/load-data'
 import saveData from '../services/save-data'
 import type { AccountData } from '../typings/AccountData'
-import type { AccountFormError } from '../typings/AccountFormError'
 import type { AlertDataContextType } from '../typings/AlertData'
+import type { FormError } from '../typings/FormError'
 import type { SessionDataContextType } from '../typings/SessionData'
 import AccountForm from './AccountForm'
 
@@ -51,10 +51,9 @@ const EditAccount = ({
     usedAt: Date.now(),
   })
   const [title, setTitle] = useState<string>('')
-  const [formError, setFormError] = useState<AccountFormError>({
-    name: { status: false, message: '' },
-    username: { status: false, message: '' },
-    password: { status: false, message: '' },
+  const [formError, setFormError] = useState<FormError>({
+    fieldName: '',
+    message: '',
   })
   const [deleteState, setDeleteState] = useState<DeleteState>({
     dialog: false,
@@ -121,42 +120,25 @@ const EditAccount = ({
     setAccountData({ ...accountData, [e.target.name]: e.target.value })
   }
 
+  const createFormError = (fieldName: string, message: string): void => {
+    setFormError({ fieldName, message })
+  }
+
   const handleSubmit = (e: React.BaseSyntheticEvent): void => {
     e.preventDefault()
 
     if (e.target.name.value.length === 0) {
-      setFormError({
-        name: {
-          status: true,
-          message: 'Account Name is required.',
-        },
-        username: { status: false, message: '' },
-        password: { status: false, message: '' },
-      })
+      createFormError('name', 'Account Name is required.')
       return
     }
 
     if (e.target.username.value.length === 0) {
-      setFormError({
-        name: { status: false, message: '' },
-        username: {
-          status: true,
-          message: 'Username is required.',
-        },
-        password: { status: false, message: '' },
-      })
+      createFormError('username', 'Username is required.')
       return
     }
 
     if (e.target.password.value.length === 0) {
-      setFormError({
-        name: { status: false, message: '' },
-        username: { status: false, message: '' },
-        password: {
-          status: true,
-          message: 'Password is required.',
-        },
-      })
+      createFormError('password', 'Password is required.')
       return
     }
 
@@ -189,6 +171,8 @@ const EditAccount = ({
         resetListView(listView)
       })
       .catch(() => {})
+
+    setFormError({ fieldName: '', message: '' })
   }
 
   const handleDelete = (): void => {

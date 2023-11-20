@@ -17,21 +17,17 @@ import generateAesKey from '../services/generate-aes-key'
 import getUsers from '../services/get-users'
 import hashPassword from '../services/hash-password'
 import type { FailedAttemptsData } from '../typings/FailedAttemptsData'
+import type { FormError } from '../typings/FormError'
 import type { SessionDataContextType } from '../typings/SessionData'
 import type { UserData } from '../typings/UserData'
-
-type AuthFormError = {
-  username: { status: boolean; message: string }
-  password: { status: boolean; message: string }
-}
 
 const Auth = (): JSX.Element => {
   const [sessionData, setSessionData] =
     useTypedContext<SessionDataContextType>(SessionContext)
 
-  const [formError, setFormError] = useState<AuthFormError>({
-    username: { status: false, message: '' },
-    password: { status: false, message: '' },
+  const [formError, setFormError] = useState<FormError>({
+    fieldName: '',
+    message: '',
   })
   const [failedAttemptsData, setFailedAttemptsData] =
     useState<FailedAttemptsData>({
@@ -116,28 +112,20 @@ const Auth = (): JSX.Element => {
     )
   }
 
+  const createFormError = (fieldName: string, message: string): void => {
+    setFormError({ fieldName, message })
+  }
+
   const handleSubmit = async (e: React.BaseSyntheticEvent): Promise<void> => {
     e.preventDefault()
 
     if (e.target.username.value.length === 0) {
-      setFormError({
-        username: {
-          status: true,
-          message: 'Your username is required.',
-        },
-        password: { status: false, message: '' },
-      })
+      createFormError('username', 'Your username is required.')
       return
     }
 
     if (e.target.password.value.length === 0) {
-      setFormError({
-        username: { status: false, message: '' },
-        password: {
-          status: true,
-          message: 'Your password is required.',
-        },
-      })
+      createFormError('password', 'Your password is required.')
       return
     }
 
@@ -149,13 +137,7 @@ const Auth = (): JSX.Element => {
     )
 
     if (foundUser === undefined) {
-      setFormError({
-        username: {
-          status: true,
-          message: 'Wrong username. Please try again.',
-        },
-        password: { status: false, message: '' },
-      })
+      createFormError('username', 'Wrong username. Please try again.')
 
       handleFailedAttempts()
 
@@ -167,13 +149,7 @@ const Auth = (): JSX.Element => {
     const hash = await hashPassword(e.target.password.value, salt)
 
     if (hash !== foundUser.hash) {
-      setFormError({
-        username: { status: false, message: '' },
-        password: {
-          status: true,
-          message: 'Wrong password. Please try again.',
-        },
-      })
+      createFormError('password', 'Wrong password. Please try again.')
 
       handleFailedAttempts()
 
@@ -227,8 +203,10 @@ const Auth = (): JSX.Element => {
             label="Username"
             type="text"
             name="username"
-            error={formError.username.status}
-            helperText={formError.username.message}
+            error={formError.fieldName === 'username'}
+            helperText={
+              formError.fieldName === 'username' ? formError.message : ''
+            }
             size="small"
             autoComplete="off"
           />
@@ -239,8 +217,10 @@ const Auth = (): JSX.Element => {
             name="password"
             value={null}
             onChange={null}
-            error={formError.password.status}
-            helperText={formError.password.message}
+            error={formError.fieldName === 'password'}
+            helperText={
+              formError.fieldName === 'password' ? formError.message : ''
+            }
           />
 
           <Button

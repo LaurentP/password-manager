@@ -23,8 +23,8 @@ import PasswordInput from '../components/PasswordInput'
 import { AlertContext } from '../contexts/AlertContext'
 import useTypedContext from '../hooks/useTypedContext'
 import type { AccountData } from '../typings/AccountData'
-import type { AccountFormError } from '../typings/AccountFormError'
 import type { AlertDataContextType } from '../typings/AlertData'
+import type { FormError } from '../typings/FormError'
 
 const AccountForm = ({
   accountData,
@@ -34,7 +34,7 @@ const AccountForm = ({
   formButtons,
 }: {
   accountData: AccountData
-  formError: AccountFormError
+  formError: FormError
   handleChange: React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>
   handleSubmit: React.FormEventHandler<HTMLFormElement>
   formButtons: JSX.Element
@@ -112,8 +112,8 @@ const AccountForm = ({
           inputProps={{ maxLength: 100 }}
           value={accountData.name}
           onChange={handleChange}
-          error={formError.name.status}
-          helperText={formError.name.message}
+          error={formError.fieldName === 'name'}
+          helperText={formError.fieldName === 'name' ? formError.message : ''}
           size="small"
           autoComplete="off"
         />
@@ -158,8 +158,10 @@ const AccountForm = ({
             inputProps={{ maxLength: 100 }}
             value={accountData.username}
             onChange={handleChange}
-            error={formError.username.status}
-            helperText={formError.username.message}
+            error={formError.fieldName === 'username'}
+            helperText={
+              formError.fieldName === 'username' ? formError.message : ''
+            }
             size="small"
             autoComplete="off"
           />
@@ -183,8 +185,10 @@ const AccountForm = ({
               name="password"
               value={accountData.password}
               onChange={handleChange}
-              error={formError.password.status}
-              helperText={formError.password.message}
+              error={formError.fieldName === 'password'}
+              helperText={
+                formError.fieldName === 'password' ? formError.message : ''
+              }
             />
             <PasswordIndicator password={accountData.password} />
           </Stack>
