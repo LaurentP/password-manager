@@ -1,6 +1,6 @@
 [package]
 name = "password-manager"
-version = "0.1.1"
+version = "0.2.0"
 description = "Password Manager"
 authors = ["Laurent Pascal"]
 license = "MIT"

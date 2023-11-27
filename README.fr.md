@@ -8,11 +8,13 @@ Pour lire le README en anglais, suivez ce lien : [README.md](README.md)
 
 - Fichiers encryptés par l'algorithme AES-256-GCM
 - Prise en charge de plusieurs utilisateurs avec un accès sécurisé
+- Verrouillage automatique contre les tentatives de force brute
 - Fermeture de session automatique après 15 minutes d'inactivité
 - Générateur de mots de passe avancé pour des mots de passe forts et sécurisés
 - Indicateur de force des mots de passe dans les formulaires
 - Import et export des données brutes vers un fichier CSV
 - Recherche rapide des comptes et actions rapides améliorant l'expérience utilisateur
+- Bascule entre un mode sombre et un mode clair
 
 ## Développement
 

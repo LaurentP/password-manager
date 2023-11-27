@@ -8,11 +8,13 @@ To see the README in French, follow this link : [README.fr.md](README.fr.md)
 
 - Encrypted data files using the AES-256-GCM algorithm
 - Multiple user support with secure access
+- Automatic lock against brute force attempts
 - Automatic logout after 15 minutes of inactivity
 - Advanced password generator for strong and secure passwords
 - Password strength indicator in forms
 - Importing and exporting raw data to a CSV file
 - Fast accounts search and actions improving the user experience
+- Toggle between dark mode and light mode
 
 ## Development
 
